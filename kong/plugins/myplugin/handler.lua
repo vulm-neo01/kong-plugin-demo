@@ -76,18 +76,19 @@ end --]]
 function plugin:header_filter(plugin_conf)
 
   -- your custom code here, for example;
-  kong.response.set_header(plugin_conf.response_header, "this is on the response")
+  kong.response.set_header(plugin_conf.response_header, "Hello guy, this is response!")
 
 end --]]
 
 
---[[ runs in the 'body_filter_by_lua_block'
-function plugin:body_filter(plugin_conf)
+-- runs in the 'body_filter_by_lua_block'
+-- function plugin:body_filter(plugin_conf)
 
-  -- your custom code here
-  kong.log.debug("saying hi from the 'body_filter' handler")
+--   -- your custom code here
+--   -- kong.log.debug("saying hi from the 'body_filter' handler")
+--   -- kong.response.add_header("Cache-Control", "no-cache")
 
-end --]]
+-- end
 
 
 --[[ runs in the 'log_by_lua_block'
