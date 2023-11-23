@@ -23,23 +23,6 @@ local schema = {
               description = "This is text field for response header",
               required = true,
               default = "Bye-World" } },
-          { return_status = {
-            description = "This is text field for return status",
-            type = "integer",
-            required = true,
-            default = 200 } },
-          { cookie_names = {
-            description = "A list of cookie names that Kong will inspect to retrieve JWTs.",
-            type = "set",
-            elements = { type = "string" },
-            default = {}
-          }, },
-          { ttl = { -- self defined field
-              description = "Time To Leave field",
-              type = "integer",
-              default = 600,
-              required = true,
-              gt = 0, }}, -- adding a constraint for the value
         },
         entity_checks = {
           -- add some validation rules across fields
