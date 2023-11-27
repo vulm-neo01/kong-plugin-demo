@@ -1,6 +1,5 @@
 local helpers = require "spec.helpers"
 
-
 local PLUGIN_NAME = "myplugin"
 
 
@@ -11,6 +10,7 @@ if strategy == "postgres" then
 
     lazy_setup(function()
 
+      -- Định nghĩa các route và plugins để kiểm thử
       local bp = helpers.get_db_utils(strategy == "off" and "postgres" or strategy, nil, { PLUGIN_NAME })
 
       -- Inject a test route. No need to create a service, there is a default
@@ -22,10 +22,25 @@ if strategy == "postgres" then
       bp.plugins:insert {
         name = PLUGIN_NAME,
         route = { id = route1.id },
-        config = {},
+        config = {
+          auth_url = "http://httpbin.org/status/200"
+        },
+      }
+
+      local route2 = bp.routes:insert({
+        hosts = { "test2.com" },
+      })
+      -- add the plugin to test to the route we created
+      bp.plugins:insert {
+        name = PLUGIN_NAME,
+        route = { id = route2.id },
+        config = {
+          auth_url = "http://httpbin.org/status/403"
+        },
       }
 
       -- start kong
+      -- Thiết lập môi trường và chạy Kong
       assert(helpers.start_kong({
         -- set the strategy
         database   = strategy,
@@ -42,6 +57,7 @@ if strategy == "postgres" then
       helpers.stop_kong(nil, true)
     end)
 
+    -- Chuẩn bị và dọn dẹp trước và sau mỗi bài kiểm thử
     before_each(function()
       client = helpers.proxy_client()
     end)
@@ -50,42 +66,21 @@ if strategy == "postgres" then
       if client then client:close() end
     end)
 
-
-
+    -- Mô tả chi tiet các bài kiểm thử
     describe("request", function()
-      it("gets a 'hello-world' header", function()
+      it("gets a 'auth' header", function()
         local r = client:get("/request", {
           headers = {
-            host = "test1.com"
+            ["Mini-Auth"] = "sooper-secret",
+            ["host"] = "test1.com"
           }
         })
         -- validate that the request succeeded, response status 200
         assert.response(r).has.status(200)
-        -- now check the request (as echoed by mockbin) to have the header
-        local header_value = assert.request(r).has.header("hello-world")
-        -- validate the value of that header
-        assert.equal("this is on a request", header_value)
+        local header_value = assert.request(r).has.header("mini-auth")
+        assert.equal("sooper-secret", header_value)
       end)
     end)
-
-
-
-    describe("response", function()
-      it("gets a 'bye-world' header", function()
-        local r = client:get("/request", {
-          headers = {
-            host = "test1.com"
-          }
-        })
-        -- validate that the request succeeded, response status 200
-        assert.response(r).has.status(200)
-        -- now check the response to have the header
-        local header_value = assert.response(r).has.header("bye-world")
-        -- validate the value of that header
-        assert.equal("this is on the response", header_value)
-      end)
-    end)
-
   end)
 end
 end
